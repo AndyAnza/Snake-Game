@@ -1,10 +1,15 @@
 const board = document.getElementById("game-board");
+const instructionText = document.getElementById("instruction-text");
+const logo = document.getElementById("logo");
 
 //Define game variables
 const gridSize = 20;
 let snake = [{ x: 10, y: 10 }];
 let food = generateFood();
 let direction = "down";
+let gameInterval;
+let gameSpeedDelay = 200;
+let gameStarted = false;
 
 //Draw game map, snake, food
 function draw() {
@@ -36,7 +41,7 @@ function setPosition(element, position) {
 }
 
 //Testing draw function
-draw();
+// draw();
 
 // Draw food Function
 function drawFood() {
@@ -70,11 +75,59 @@ function move() {
       break;
   }
   snake.unshift(head);
-  snake.pop();
+  if (head.x === food.x && head.y === food.y) {
+    food = generateFood(); //If we hit the food its going to generate a new one
+    clearInterval(); //It resets the movement and the move function, otherwise it'll create bugs
+    gameInterval = setInterval(() => {
+      move();
+      draw();
+    }, gameSpeedDelay);
+  } else {
+    snake.pop();
+  }
 }
 
 // Test moving
-setInterval(() => {
-  move();
-  draw();
-}, 200);
+// setInterval(() => {
+//   move(); //Move first
+//   draw(); //Then draw again new position
+// }, 200);
+
+// Start game function
+function startGame() {
+  gameStarted = true; //Keep track of the running game
+  instructionText.style.display = "none";
+  logo.style.display = "none";
+  gameInterval = setInterval(() => {
+    move();
+    // checkCollision();
+    draw();
+  }, gameSpeedDelay);
+}
+
+// Keypress eventn listener
+function handleKeypress(event) {
+  if (
+    (!gameStarted && event.key === " ") ||
+    (!gameStarted && event.code === "Space")
+  ) {
+    startGame();
+  } else {
+    switch (event.key) {
+      case "ArrowUp":
+        direction = "up";
+        break;
+      case "ArrowDown":
+        direction = "down";
+        break;
+      case "ArrowLeft":
+        direction = "left";
+        break;
+      case "ArrowRight":
+        direction = "right";
+        break;
+    }
+  }
+}
+
+document.addEventListener("keydown", handleKeypress);
