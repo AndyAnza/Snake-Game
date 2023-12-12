@@ -1,6 +1,7 @@
 const board = document.getElementById("game-board");
 const instructionText = document.getElementById("instruction-text");
 const logo = document.getElementById("logo");
+const score = document.getElementById("score");
 
 //Define game variables
 const gridSize = 20;
@@ -16,6 +17,7 @@ function draw() {
   board.innerHTML = "";
   drawSnake();
   drawFood();
+  updateScore();
 }
 
 //Draw snake
@@ -77,9 +79,11 @@ function move() {
   snake.unshift(head);
   if (head.x === food.x && head.y === food.y) {
     food = generateFood(); //If we hit the food its going to generate a new one
-    clearInterval(); //It resets the movement and the move function, otherwise it'll create bugs
+    increaseSpeed();
+    clearInterval(gameInterval); //It resets the movement and the move function, otherwise it'll create bugs
     gameInterval = setInterval(() => {
       move();
+      checkCollision();
       draw();
     }, gameSpeedDelay);
   } else {
@@ -100,7 +104,7 @@ function startGame() {
   logo.style.display = "none";
   gameInterval = setInterval(() => {
     move();
-    // checkCollision();
+    checkCollision();
     draw();
   }, gameSpeedDelay);
 }
@@ -131,3 +135,43 @@ function handleKeypress(event) {
 }
 
 document.addEventListener("keydown", handleKeypress);
+
+function increaseSpeed() {
+  // console.log(gameSpeedDelay);
+  if (gameSpeedDelay > 150) {
+    gameSpeedDelay -= 5;
+  } else if (gameSpeedDelay > 100) {
+    gameSpeedDelay -= 3;
+  } else if (gameSpeedDelay > 50) {
+    gameSpeedDelay -= 2;
+  } else if (gameSpeedDelay > 25) {
+    gameSpeedDelay -= 1;
+  }
+}
+
+//Resets the game if we hit the wall or we hit our own body
+function checkCollision() {
+  const head = snake[0];
+  if (head.x < 1 || head.x > gridSize || head.y < 1 || head.y > gridSize) {
+    resetGame();
+  }
+
+  for (let i = 1; i < snake.length; i++) {
+    if (head.x === snake[i].x && head.y === snake[i].y) {
+      resetGame();
+    }
+  }
+}
+
+function resetGame() {
+  snake = [{ x: 10, y: 10 }];
+  food = generateFood();
+  direction = "right";
+  gameSpeedDelay = 200;
+  updateScore();
+}
+
+function updateScore() {
+  const currentScore = snake.length - 1;
+  score.textContent = currentScore.toString().padStart(3, "0");
+}
